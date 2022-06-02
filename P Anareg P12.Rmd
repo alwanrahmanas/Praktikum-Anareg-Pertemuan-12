@@ -1,0 +1,160 @@
+---
+title: "P Anareg P12"
+author: "Puput Budi Aji"
+date: '2022-05-27'
+output: html_document
+---
+
+**PACKAGES YANG DIGUNAKAN**
+```{r }
+library(haven)          # untuk impor data dengan eksistensi sav
+library(lmtest)         # untuk pengecekan asumsi homoskedastisitas
+library(nortest)        # untuk pengecekan asumsi normalitas 
+library(foreign)
+```
+
+**IMPOR DATA**
+```{r }
+anareg12.1<-read.spss("D:/stis/kuliah/semester 4/ANAREG/praktikum/pertemuan 12/Data_Modul12.sav", to.data.frame=TRUE)
+anareg12.2<-read.spss("D:/stis/kuliah/semester 4/ANAREG/praktikum/pertemuan 12/Data_Regresi01.sav", to.data.frame=TRUE)
+head(anareg12.1)
+head(anareg12.2)
+```
+
+**PERBAIKAN PELANGGARAN HOMOSKEDASTISITAS**
+```{r }
+#mendefinisikan variabel pada Data1
+Y  <- anareg12.1$Y 
+X1 <- anareg12.1$X1        
+X2 <- anareg12.1$X2   
+X3 <- anareg12.1$X3    
+X4 <- anareg12.1$X4
+#membentuk model rls
+model1 <- lm(Y~X1+X2+X3+X4)
+summary(model1)
+```
+
+**PENGUJIAN ASUMSI HOMOSKEDASTISITAS**
+
+Secara visual: Scatterplot residual dan fitted value 
+```{r }
+res1 <- model1$residuals   
+plot(x = model1$fitted.values ,y = res1,
+     xlab     = "Fitted Value",
+     ylab     = "Residuals",
+     xlim     = c(0.2,0.7),
+     ylim     = c(-0.5,1),
+     main     = "Scatter Plot antara Residuals dan Fitted Value",
+     cex.main = 1,
+     col = "steel blue")
+```
+
+Berdasarkan scatter plot di atas, terlihat bahwa residual cenderung meningkat seiring dengan peningkatan nilai fitted value. Hal ini mengindikasikan bahwa varians residual tidak konstan tetapi membesar seiring pertambahan nilai fitted value atau terjadi gejala heteroskedastis.
+
+Hipotesis Pengujian
+
+- H0 : varians error konstan normal (homoskedastisitas) 
+
+- H1 : varians error tidak konstan (heteroskedastisitas)
+
+Secara formal: Uji Glejser
+```{r }
+# BENTUK VARIABEL NILAI ABSOLUT DARI RESIDUAL 
+abs_res1 <- abs(res1)
+
+# REGRESIKAN SELURUH VARIABEL BEBAS TERHADAP NILAI ABSOLUT DARI RESIDUAL
+model_glejser1 <- lm(abs_res1~X1+X2+X3+X4)
+summary(model_glejser1)
+```
+
+berdasrakan output, terlihat bahwa koefisien regresi untuk X3 signifikan. Hal ini menunjukkan terjadi heteroskedastisitas
+
+*melakukan perbaikan dengan transformasi variabel*
+```{r }
+Y_X3<-Y/X3
+X1_X3<-X1/X3
+X2_X3<-X2/X3
+X3_X3<-X3/X3
+X4_X3<-X4/X3
+```
+
+*Membentuk model dengan variabel transformasi*
+```{r }
+model2<-lm(Y_X3~X1_X3+X2_X3+X3_X3+X4_X3)
+summary(model2)
+```
+
+Hipotesis Pengujian
+
+- H0 : varians error konstan normal (homoskedastisitas) 
+
+- H1 : varians error tidak konstan (heteroskedastisitas)
+
+*Pengujian dengan model baru*
+```{r }
+res2<-model2$residuals
+#BENTUK VARIABEL NILAI ABSOLUT DARI RESIDUAL
+abs_res2<-abs(res2)
+
+# REGRESIKAN SELURUH VARIABEL BEBAS TERHADAP NILAI ABSOLUT DARI RESIDUAL
+model_glejser2<-lm(abs_res2~X1_X3+X2_X3+X3_X3+X4_X3)
+summary(model_glejser2)
+```
+
+**MENGATASI PELANGGARAN ASUMSI NORMALITAS**
+```{r }
+#mendefinisikan variabel pada Data2
+Y <- anareg12.2$X10          # Y: Persen Penduduk dibawah Garis Kemiskinan (X10)
+X1 <- anareg12.2$X12         # X1: Pendapatan Perkapita (X12)
+X2 <- anareg12.2$X9          # X2: Persen Lulusan Sarjana/Diploma IV (X9)
+X3 <- anareg12.2$X11         # X3: Persen Pengangguran (X11)
+X4 <- anareg12.2$X2          # X4: Jumlah Penduduk (X2)
+X5 <- anareg12.2$X13         # X5: Total Pendapatan Penduduk (X13) 
+#membentuk model rls
+model3 <- lm(Y~X1+X2+X3+X4+X5)
+summary(model3)
+```
+
+**PENGUJIAN ASUMSI NORMALITAS**
+*Secara visual: histogram dan boxplot*
+```{r }
+res3<-model3$residuals
+#histogram
+hist(res3, main="histogram of unstandardized residual", xlab="of unstandardized residual", ylab="frekuensi", col="steel blue")
+#boxplot
+boxplot(res3, main="boxplot of unstandardized residual", col="steel blue")
+```
+
+*uji formal*
+```{r }
+shapiro.test(res3)   #tes shapiro wilk
+```
+
+*melakukan perbaikan dengan transformasi variabel*
+```{r }
+#membentuk LN
+lnY<-log(Y)
+lnX1<-log(X1)
+lnX2<-log(X2)
+lnX3<-log(X3)
+lnX4<-log(X4)
+lnX5<-log(X5)
+
+#regresikan
+model_normal<-lm(lnY~lnX1+lnX2+lnX3+lnX4+lnX5)
+summary(model_normal)
+resnormal<-model_normal$residuals
+```
+
+*diuji lagi*
+```{r }
+shapiro.test(resnormal)
+```
+
+*bentuk histogram dan boxplot*
+```{r }
+#histogram
+hist(resnormal, main="histogram of unstandardized residual", xlab="of unstandardized residual", ylab="frekuensi", col="steel blue")
+#boxplot
+boxplot(resnormal, main="boxplot of unstandardized residual", col="steel blue")
+```

@@ -1,0 +1,156 @@
+---
+title: "Untitled"
+author: "Alwan Rahmana"
+date: "5/31/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+library(haven)
+library(normtest  )
+library(lmtest)
+
+dr1<-Data_Regresi01
+dm12<-Data_Modul12
+```
+```{r}
+y<-dm12$Y
+x1<-dm12$X1
+x2<-dm12$X2
+x3<-dm12$X3
+x4<-dm12$X4
+
+model1<-lm(y~x1+x2+x3+x4)
+summary(model1)
+```
+```{r}
+res<-model1$residuals
+plot(x=model1$fitted.values,y=res,
+     xlab= "Fitted Values",
+     ylab= "Residuals",
+     xlim= c(0.2,0.7),
+     ylim=c(-0.5,1),
+     main= "Scatter Plot antara Residual dan Fitted Value",
+     cex.main = 1,
+     col = "red")
+```
+
+Berdasarkan scatter plot di atas, terlihat bahwa residual cenderung meningkat seiring peningkatan fitted value. Hal ini mengindikasikan bahwa varians residual tidak konstan tetapi membesar seiring pertambahan nilai fitted value atau terjadi Homoskedastisitas
+
+
+```{r}
+abs_res1<-abs(res)
+
+model_glesjer<-lm(abs_res1~x1+x2+x3+x4)
+summary(model_glesjer)
+```
+
+
+```{r}
+y_x3<-y/x3
+x1_x3<-x1/x3
+x2_x3<-x2/x3
+x3_x3<-x3/x3
+x4_x3<-x4/x3
+```
+
+```{r}
+model2<-lm(y_x3~x1_x3+x2_x3+x3_x3+x4_x3)
+summary(model2)
+```
+Hipotesis Pengujian
+
+H0: Varians error konstan normal
+Ha: Varians error tidak konstan
+```{r}
+res2<-model2$residuals
+abs_res2<-abs(res2)
+model_glesjer2<-lm(abs_res2~x1_x3+x2_x3+x3_x3+x4_x3)
+summary(model_glesjer2)
+```
+
+```{r}
+Y<-dr1$X10
+X1<-dr1$X12
+X2<-dr1$X9
+X3<-dr1$X11
+X4<-dr1$X2
+X5<-dr1$X13
+
+
+model3<-lm(Y~X1+X2+X3+X4+X5)
+summary(model3)
+```
+
+```{r}
+res3<-model3$residuals
+
+#histogram
+hist(res3,main ="Histogram of ",xlab="Unstandardized Residuals",ylab="Frekuensi",col= "steel blue")
+
+boxplot(res3, main= "Boxplot of Unstandardized Residual", col ="steel blue")
+```
+Normality test
+
+H0: Error berdistribusi normal
+Ha: Error tidak berdistribusi normal
+```{r}
+ks.test(res3,"pnorm",mean =mean(res3),sd=sd(res3))
+shapiro.test(res3)
+```
+Berdasarkan output, terlihat bahwa seluruh statistik uji menghasilkan nilai p-value yang kurang dari 0.05 sehingga menghasilkan keputusan tolak H0. Berdasarkan tingkat signifikansi 5%, didaptkan cukup bukti untuk mengatakan bahwa residual tidak mengikuti distribusi normal.
+
+```{r}
+#Transformasi var indpenden dan dependen menjadi LN
+
+lny<-log(Y)
+lnx1<-log(X1)
+lnx2<-log(X2)
+lnx3<-log(X3)
+lnx4<-log(X4)
+lnx5<-log(X5)
+
+#Regresikan seluruh variabel yang sudah ditransformasikan logaritma natural
+
+model_normal<-lm(lny~lnx1+lnx2+lnx3+lnx4+lnx5)
+summary(model_normal)
+```
+
+```{r}
+resnormal<-model_normal$residuals
+shapiro.test(resnormal)
+ks.test(resnormal,"pnorm",mean=mean(resnormal),sd=sd(resnormal))
+```
+
+
+```{r}
+hist(resnormal,main ="Histogram of ",xlab="Unstandardized Residuals",ylab="Frekuensi",col= "steel blue")
+
+boxplot(resnormal, main= "Boxplot of Unstandardized Residual", col ="steel blue")
+```
+

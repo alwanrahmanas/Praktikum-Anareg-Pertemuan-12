@@ -1,0 +1,142 @@
+---
+title: "Praktikum Penugasan Anareg P 12"
+author: "Alwan Rahmana"
+date: "5/31/2022"
+output: word_document
+---
+
+
+```{r}
+library(normtest)
+library(lmtest)
+```
+
+1) Bangun model yang menjelaskan hubungan Y dengan X1 dan X3. Tuliskan persamaan regresi yang diperoleh.
+```{r}
+y<-Data_TugasModul12$Y
+x1<-Data_TugasModul12$X1
+x3<-Data_TugasModul12$X3
+
+model1<-lm(y~x1+x3)
+summary(model1)
+```
+
+2) Periksa apakah persamaan regresi pada soal 1) memenuhi asumsi normalitas dan homoskedastisitas.
+
+
+Ho:Error berdistribusi normal
+Ha: Error tidak berdistribusi normal
+```{r}
+#asumsi normalitas  by test
+res1<-model1$residuals
+shapiro.test(res1)
+ks.test(res1,"pnorm",mean=mean(res1),sd=sd(res1))
+
+```
+
+```{r}
+#asumsi normalitas by plot
+
+hist(res1)
+boxplot(res1)
+```
+H0: Varians error konstan
+Ha: Varians error tidak konstan
+```{r}
+#asumsi homoskedastisitas
+abs_res1<-abs(res1)
+modelGlesjer1<-lm(abs_res1~x1+x3)
+summary(modelGlesjer1)
+```
+```{r}
+#asusmsi homoskedastisitas by plot
+
+plot(x = model1$fitted.values ,y = res1,
+     xlab     = "Fitted Value",
+     ylab     = "Residuals",
+    
+     main     = "Scatter Plot antara Residuals dan Fitted Value",
+     cex.main = 1,
+     col = "steel blue")
+```
+3) Jika asumsi normalitas terlanggar, lakukan tindakan perbaikan untuk mendapatkan model yang memenuhi asumsi normalitas.
+```{r}
+lny<-log(y)
+lnx1<-log(x1)
+lnx3<-log(x3)
+
+modelNormal<-lm(lny~lnx1+lnx3)
+summary(modelNormal)
+```
+
+```{r}
+#normality test for error
+resnormal<-modelNormal$residuals
+shapiro.test(resnormal)
+ks.test(resnormal,"pnorm",mean=mean(resnormal),sd=sd(resnormal ))
+
+#byplot
+hist(resnormal)
+boxplot(resnormal)
+
+
+```
+```{r}
+abs_resnormal<-abs(resnormal)
+modelGlesjerNormal<-lm(abs_resnormal~x1_x3+x3_x3)
+summary(modelGlesjerNormal)
+```
+
+
+4) Jika asumsi homoskedastisitas terlanggar, lakukan perbaikan untuk mendapatkan model yang memenuhi asumsi homoskedastisitas.
+```{r}
+y_x3<-y/x3
+x1_x3<-x1/x3
+x3_x3<-x3/x3
+
+modelGlesjer2<-lm(y_x3~x1_x3+x3_x3)
+summary(modelGlesjer2)
+resGl2<-modelGlesjer2$residuals
+ks.test(resGl2,"pnorm",mean=mean(resGl2),sd=sd(resGl2))
+#modelHeteroLn<-lm(lny~lnx1+lnx3)
+```
+
+
+```{r}
+modelHeteroLn<-lm(lny~lnx1+lnx3)
+resLn<-modelHeteroLn$residuals
+absResLn<-abs(resLn)
+modelGlesjerLn<-lm(absResLn~lnx1+lnx3)
+summary(modelGlesjerLn)
+
+ks.test(resLn,"pnorm",mean=mean(resLn),sd=sd(resLn))
+```
+
+
+
+
+```{r}
+plot(x = modelGlesjer2$fitted.values ,y = modelGlesjer2$residuals,
+     xlab     = "Fitted Value",
+     ylab     = "Residuals",
+    
+     main     = "Scatter Plot antara Residuals dan Fitted Value",
+     cex.main = 1,
+     col = "steel blue")
+```
+
+```{r}
+
+
+res2<-modelGlesjer2$residuals
+absRes2<-abs(res2)
+modelGlesjer2Test<-lm(absRes2~x1_x3+x3_x3)
+summary(modelGlesjer2Test)
+```
+
+```{r}
+modelnormal<-lm(y_x3~x1_x3+x3_x3)
+ks.test(modelnormal$residuals,"pnorm",mean=mean(modelnormal$residuals),sd=sd(modelnormal$residuals))
+
+```
+
